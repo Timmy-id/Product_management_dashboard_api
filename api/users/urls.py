@@ -1,13 +1,11 @@
 # users/urls.py
 from django.urls import path
-# from rest_framework.routers import DefaultRouter
 
-from .views import RegisterView, UserListView
+from .views import register_user, update_user_profile
 
-# router = DefaultRouter()
-# router.register(r'profile', UserViewSet, basename='user') # 'profile' as endpoint for user details
+app_name = 'users'
 
 urlpatterns = [
-    path('register/', RegisterView.as_view(), name='register'),
-    path('', UserListView.as_view(), name='user-list')
+    path('register/', register_user, name='register_user'),
+    path('/update_profile', update_user_profile, name='update_user_profile'),
 ]

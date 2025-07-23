@@ -1,24 +1,31 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from .models import CustomUser
+
+User = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer):
+class RegisterUserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CustomUser
-        fields = ('id', 'email', 'first_name', 'last_name', 'profile_name')
-        read_only_fields = ('date_joined', 'is_staff')
-
-
-class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
-
-    class Meta:
-        model = CustomUser
-        fields = ('profile_name', 'email', 'password', 'first_name', 'last_name')
+        model = User
+        fields = ['id', 'email', 'username', 'first_name', 'last_name', 'password']
         extra_kwargs = {
-            'first_name': {'required': False},
-            'last_name': {'required': False}
+            'password': {'write_only': True},
+            'id': {'read_only': True}
         }
     
     def create(self, validated_data):
-        return CustomUser.objects.create_user(**validated_data)
+        email=validated_data['email']
+        username=validated_data['username']
+        first_name=validated_data['first_name']
+        last_name=validated_data['last_name']
+        password=validated_data['password']
+
+        new_user = User.objects.create(email=email, username=username, first_name=first_name, last_name=last_name)
+        new_user.set_password(password)
+        new_user.save()
+        return new_user
+
+class UpdateProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'username', 'first_name', 'last_name', 'phone_number', 'avatar']

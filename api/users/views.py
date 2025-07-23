@@ -1,24 +1,26 @@
-from django.shortcuts import render
-from rest_framework import generics, permissions, viewsets, status
 from rest_framework.response import Response
-from .serializers import UserSerializer, RegisterSerializer
-from .models import CustomUser
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
-# Create your views here.
-class UserListView(generics.ListAPIView):
-    queryset = CustomUser.objects.all().order_by('-date_joined')
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+from .serializers import RegisterUserSerializer, UpdateProfileSerializer
+
+
+@api_view(['POST'])
+def register_user(request):
+    serializer = RegisterUserSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
     
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class RegisterView(generics.CreateAPIView):
-    queryset = CustomUser.objects.all()
-    permission_classes = (permissions.AllowAny,)
-    serializer_class = RegisterSerializer
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_user_profile(request):
+    user = request.user
+    serializer = UpdateProfileSerializer(user, data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
